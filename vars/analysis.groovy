@@ -48,7 +48,7 @@ def process_outcomes() {
     // Only produce a failure file if there was a failing job (otherwise
     // we'd just waste time creating an empty file).
     if (gen_jobs.failed_builds) {
-    sh '''\
+        sh '''\
 awk -F';' '$5=="SKIP"' outcomes.csv >"failures.csv"
 # Compress the failure list if it is large (for some value of large)
 if [ "$(wc -c <failures.csv)" -gt 99999 ]; then
