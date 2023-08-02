@@ -159,7 +159,7 @@ scripts/min_requirements.py --user
      * 2024-01-18. Run two days before, to make sure that time-of-day plus
      * timezones don't get us after the cutoff.
      */
-    def fake_date = new Date().parse('yyyy-MM-dd', '2024-01-16')
+    def fake_date = Date.parse('yyyy-MM-dd', '2024-01-16')
     def today = new Date()
     def days_ahead = fake_date.minus(today)
     all_sh_precommand += ' faketime 2024-01-16 +${days_ahead}d '
