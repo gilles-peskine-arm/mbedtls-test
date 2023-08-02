@@ -102,6 +102,7 @@ def gen_all_sh_jobs(platform, component, label_prefix='') {
     def job_name = "${label_prefix}all_${shortplat}-${component}"
     def use_docker = platform_has_docker(platform)
     def extra_setup_code = ''
+    def all_sh_precommand = ''
     def node_label = node_label_for_platform(platform)
 
     if (platform_lacks_tls_tools(platform)) {
@@ -151,6 +152,20 @@ scripts/min_requirements.py --user
 '''
     }
 
+    /* Hard-code a fake date to run the jobs.
+     * Make the fake date be a different day, but the same time of day,
+     * to reduce confusion in the logs.
+     * At the time of writing, we have test certificates that expire on
+     * 2024-01-18. Run two days before, to make sure that time-of-day plus
+     * timezones don't get us after the cutoff.
+     */
+    def fake_date = new Date().parse('yyyy-MM-dd', '2024-01-16')
+    def today = new Date()
+    def days_ahead = fake_date.minus(today)
+    all_sh_precommand += ' faketime 2024-01-16 +${days_ahead}d '
+
+    echo "all_sh_precommand = ${all_sh_precommand}"
+
     return instrumented_node_job(node_label, job_name) {
         try {
             deleteDir()
@@ -165,7 +180,7 @@ set -eux
 ulimit -f 20971520
 export MBEDTLS_TEST_OUTCOME_FILE='${job_name}-outcome.csv'
 ${extra_setup_code}
-./tests/scripts/all.sh --seed 4 --keep-going $component
+${all_sh_precommand} ./tests/scripts/all.sh --seed 4 --keep-going $component
 """
                 sh 'chmod +x steps.sh'
             }
