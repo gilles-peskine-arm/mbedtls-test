@@ -171,7 +171,7 @@ scripts/min_requirements.py --user
         def now_millis = currentBuild.getTimeInMillis()
         days_ahead = (target_millis - now_millis) / 1000 / 86400
     }
-    all_sh_precommand += ' faketime +${days_ahead}d '
+    all_sh_precommand += " faketime +${days_ahead}d "
 
     echo "all_sh_precommand = ${all_sh_precommand}"
 
