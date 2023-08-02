@@ -157,12 +157,13 @@ scripts/min_requirements.py --user
      * to reduce confusion in the logs.
      * At the time of writing, we have test certificates that expire on
      * 2024-01-18. Run two days before, to make sure that time-of-day plus
-     * timezones don't get us after the cutoff.
+     * timezones plus the time it takes to run the tests don't get us after
+     * the cutoff.
      */
     def fake_date = Date.parse('yyyy-MM-dd', '2024-01-16')
     def today = new Date()
     def days_ahead = fake_date.minus(today)
-    all_sh_precommand += ' faketime 2024-01-16 +${days_ahead}d '
+    all_sh_precommand += ' faketime +${days_ahead}d '
 
     echo "all_sh_precommand = ${all_sh_precommand}"
 
