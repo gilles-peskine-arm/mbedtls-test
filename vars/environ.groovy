@@ -18,12 +18,14 @@
  */
 
 def set_common_environment() {
-    /* Do moderately parallel builds. This overrides the default in all.sh
-     * which is to do maximally parallel builds (-j). Massively parallel builds
-     * can cause load spikes which cause other builds to lag and time out, so
-     * avoid that. Do somewhat parallel builds, not just sequential builds,
-     * so that the CI has a chance to detect related makefile bugs. */
-    env.MAKEFLAGS = '-j2'
+    if (!common.faketime) {
+        /* Do moderately parallel builds. This overrides the default in all.sh
+         * which is to do maximally parallel builds (-j). Massively parallel builds
+         * can cause load spikes which cause other builds to lag and time out, so
+         * avoid that. Do somewhat parallel builds, not just sequential builds,
+         * so that the CI has a chance to detect related makefile bugs. */
+        env.MAKEFLAGS = '-j2'
+    }
 }
 
 def set_tls_pr_environment(is_production) {

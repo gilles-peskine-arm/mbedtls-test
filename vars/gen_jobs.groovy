@@ -556,7 +556,9 @@ def gen_release_jobs(label_prefix='', run_examples=true) {
     def jobs = [:]
 
     common.get_branch_information()
-    inject_faketime()
+    if (common.faketime) {
+        inject_faketime()
+    }
 
     if (env.RUN_BASIC_BUILD_TEST == "true") {
         jobs = jobs + gen_code_coverage_job('ubuntu-16.04');

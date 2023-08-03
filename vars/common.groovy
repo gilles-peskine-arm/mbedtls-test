@@ -75,6 +75,9 @@ import hudson.plugins.git.GitSCM
  * of Visual Studio to test with: older versions lack C99 support. */
 @Field code_is_c99 = null
 
+/* Do the build in the future to check that the tests have no time dependency? */
+@Field faketime = true
+
 /* Prefix inserted into the shell command to run all.sh, immediately
  * before " tests/scripts/all.sh" on the same line. */
 @Field all_sh_precommand = ''
