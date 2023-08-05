@@ -261,12 +261,12 @@ RUN git clone https://github.com/wolfcw/libfaketime && \
     cd libfaketime && \
     # Take a commit that we know works
     git checkout 27b9c83a27cf253fcfa05bcbc635e85b36acb1cc && \
-    make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DFAKE_RANDOM -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' LIBDIRNAME='/lib' install && \
+    make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' LIBDIRNAME='/lib' install && \
     make clean && \
     # Install the 32-bit libraries manually: we don't want the rest of
     # the installation since that would overlap with 64-bit files, and
     # we want the libraries in a separate directory.
-    CFLAGS='-m32' LDFLAGS='-m32' make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DFAKE_RANDOM -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' && \
+    CFLAGS='-m32' LDFLAGS='-m32' make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' && \
     install -v -d -m 0755 /usr/local/lib32 && \
     install -v -m 0644 src/lib*.so.* /usr/local/lib32/ && \
     cd .. && \
