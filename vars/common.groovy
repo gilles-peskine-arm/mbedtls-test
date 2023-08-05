@@ -227,6 +227,14 @@ def get_branch_information() {
                         returnStdout: true
                     ).trim().split('\n')
                     for (element in all) {
+                        // When using faketime, we only care about
+                        // running tests, not about other builds.
+                        // Keep non-build checks, they should work
+                        // and don't cost much.
+                        if (faketime && element.startsWith('build_')) {
+                            echo "Skipping ${element} in faketime mode"
+                            continue;
+                        }
                         all_all_sh_components[element] = null
                     }
                 }
