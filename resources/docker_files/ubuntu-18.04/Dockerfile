@@ -56,8 +56,6 @@ RUN apt-get update -q && apt-get install -yq \
         cmake \
         # to build Mbed TLS's documentation
         doxygen \
-        # to run tests in specific time.
-        faketime \
         # to cross-build Mbed TLS
         gcc-mingw-w64-i686 \
         # to check out Mbed TLS and others
@@ -247,6 +245,25 @@ ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.7.2/bin/gnutls-serv
 RUN git clone --branch uncrustify-0.75.1 https://github.com/uncrustify/uncrustify.git && \
     cd uncrustify && mkdir build && cd build && cmake .. && make install && \
     cd .. && rm -rf uncrustify
+
+# Build a recent, custom faketime that works with Clang+Asan.
+# We need to enable FAIL_PRE_INIT_CALLS introduced in
+# https://github.com/wolfcw/libfaketime/pull/389, which is not in a release
+# yet.
+RUN git clone https://github.com/wolfcw/libfaketime && \
+    cd libfaketime && \
+    # Take a commit that we know works
+    git checkout 27b9c83a27cf253fcfa05bcbc635e85b36acb1cc && \
+    make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DFAKE_RANDOM -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' LIBDIRNAME='/lib' install && \
+    make clean && \
+    # Install the 32-bit libraries manually: we don't want the rest of
+    # the installation since that would overlap with 64-bit files, and
+    # we want the libraries in a separate directory.
+    CFLAGS='-m32' LDFLAGS='-m32' make FAKETIME_COMPILE_CFLAGS='-DFAKE_FILE_TIMESTAMPS -DFAKE_RANDOM -DINTERCEPT_SYSCALL -DFAIL_PRE_INIT_CALLS' && \
+    install -v -d -m 0755 /usr/local/lib32 && \
+    install -v -m 0644 src/lib*.so.* /usr/local/lib32/ && \
+    cd .. && \
+    rm -rf libfaketime
 
 # Install Python pip packages
 #
