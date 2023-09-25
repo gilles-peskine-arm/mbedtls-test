@@ -70,6 +70,18 @@ import hudson.AbortException
  * and bare python on other platforms. */
 @Field has_min_requirements = null
 
+/* Ad hoc overrides for scripts/ci.requirements.txt, used to adjust
+ * requirements on older branches that broke due to updates of the
+ * required packages.
+ * Only used if has_min_requirements is true. */
+@Field python_requirements_override_content = null
+
+/* Name of the file containing python_requirements_override_content.
+ * The string is injected into Unix sh and Windows cmd command lines,
+ * so it must not contain any shell escapes or directory separators.
+ * Only used if has_min_requirements is true. */
+@Field python_requirements_override_file = 'override.requirements.txt'
+
 /* We need to know whether the code is C99 in order to decide which versions
  * of Visual Studio to test with: older versions lack C99 support. */
 @Field code_is_c99 = null
@@ -139,6 +151,17 @@ Caught: ${stack_trace_to_string(err)}
 }
 
 
+def construct_python_requirements_override() {
+    List<String> overrides = []
+
+    if (overrides) {
+        List<String> header = ['-r scripts/ci.requirements.txt']
+        List<String> footer = [''] // to get a trailing newline
+        python_requirements_override_content = (header + overrides + footer).join('\n')
+    }
+}
+
+
 def init_docker_images() {
     stage('init-docker-images') {
         def jobs = wrap_report_errors(linux_platforms.collectEntries {
@@ -178,7 +201,9 @@ docker run -u \$(id -u):\$(id -g) -e MAKEFLAGS --rm --entrypoint $entrypoint \
 """
 }
 
-/* Get components of all.sh for a list of platforms*/
+/* Gather information about the branch that determines how to set up the
+ * test environment.
+ * In particular, get components of all.sh for Linux platforms. */
 def get_branch_information() {
     if (all_all_sh_components) {
         return
@@ -190,6 +215,13 @@ def get_branch_information() {
             checkout_repo.checkout_repo()
 
             has_min_requirements = fileExists('scripts/min_requirements.py')
+
+            if (has_min_requirements) {
+                construct_python_requirements_override()
+                if (!python_requirements_override_content) {
+                    python_requirements_override_file = ''
+                }
+            }
 
             // Branches written in C89 (plus very minor extensions) have
             // "-Wdeclaration-after-statement" in CMakeLists.txt, so look

@@ -146,9 +146,9 @@ echo >&2 'Note: "clang" will run /usr/bin/clang -Wno-error=c11-extensions'
     }
 
     if (common.has_min_requirements) {
-        extra_setup_code += '''
-scripts/min_requirements.py --user
-'''
+        extra_setup_code += """
+scripts/min_requirements.py --user ${common.python_requirements_override_file}
+"""
     }
 
     return instrumented_node_job(node_label, job_name) {
@@ -228,7 +228,7 @@ def gen_windows_testing_job(build, label_prefix='') {
                 dir("src") {
                     timeout(time: common.perJobTimeout.time,
                             unit: common.perJobTimeout.unit) {
-                        bat "python scripts\\min_requirements.py"
+                        bat "python scripts\\min_requirements.py ${common.python_requirements_override_file}"
                     }
                 }
             }
@@ -291,7 +291,7 @@ set -eux
 ulimit -f 20971520
 
 if [ -e scripts/min_requirements.py ]; then
-scripts/min_requirements.py --user
+scripts/min_requirements.py --user ${common.python_requirements_override_file}
 fi
 
 tests/scripts/list-identifiers.sh --internal
@@ -329,7 +329,7 @@ set -eux
 ulimit -f 20971520
 
 if [ -e scripts/min_requirements.py ]; then
-scripts/min_requirements.py --user
+scripts/min_requirements.py --user ''' + common.python_requirements_override_file + '''
 fi
 
 if grep -q -F coverage-summary.txt tests/scripts/basic-build-test.sh; then

@@ -22,6 +22,20 @@ import hudson.scm.NullSCM
 import jenkins.model.CauseOfInterruption
 import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 
+/* Write some files that override the default behavior.
+ * This is intended for older branches where the CI was passing when the
+ * branch was made, but is now failing, for example due to an external
+ * dependency. If we can, we override the behavior to make it more like
+ * the target branch.
+ */
+void write_overrides() {
+    if (common.python_requirements_override_file &&
+        common.python_requirements_override_content) {
+        writeFile file:common.python_requirements_override_file,
+                  text:common.python_requirements_override_content
+    }
+}
+
 Map<String, String> checkout_report_errors(scm_config) {
     if (scm_config instanceof NullSCM) {
         echo 'scm is NullSCM - branch was deleted while being tested'
@@ -44,7 +58,9 @@ Map<String, String> checkout_repo() {
     } else {
         scm_config = parametrized_repo(env.MBED_TLS_REPO, env.MBED_TLS_BRANCH)
     }
-    return checkout_report_errors(scm_config)
+    m = checkout_report_errors(scm_config)
+    write_overrides()
+    return m
 }
 
 Map<String, String> checkout_mbed_os_example_repo(String repo, String branch) {
