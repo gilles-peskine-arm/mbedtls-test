@@ -240,7 +240,12 @@ def get_branch_information() {
 
             if (has_min_requirements) {
                 construct_python_requirements_override()
-                if (!python_requirements_override_content) {
+                if (python_requirements_override_content) {
+                    echo "Overriding Python requirements with ${python_requirements_override_file}"
+                    writeFile file:python_requirements_override_file,
+                              text:python_requirements_override_content
+                    archiveArtifacts(python_requirements_override_file)
+                } else {
                     python_requirements_override_file = ''
                 }
             }
