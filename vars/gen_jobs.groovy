@@ -146,6 +146,27 @@ echo >&2 'Note: "clang" will run /usr/bin/clang -Wno-error=c11-extensions'
     }
 
     if (info.has_min_requirements) {
+        if (platform == 'arm-compilers') {
+            /* Hack on a hack:
+             * - The requirements override may result in having duplicate
+             *   entries for a package, one with a version specification
+             *   and one without.
+             * - This is only supported by default since pip 20.3.
+             *   It's available as an alpha feature since pip 20.1b1.
+             * - Ubuntu 20.04 comes with pip 20.0.2.
+             * - At the time of writing, we can't change the arm-compilers
+             *   docker image because:
+             *     - It can't be rebuilt from scratch.
+             *     - On OpenCI, any change results in a rebuild from scratch,
+             *       even though intermediate steps should have been cached.
+             *       Even adding something at the very end doesn't work.
+             *
+             * So we upgrade pip here.
+             */
+        extra_setup_code += """
+python3 -m pip install 'pip >= 20.3'
+"""
+        }
         extra_setup_code += """
 scripts/min_requirements.py --user ${info.python_requirements_override_file}
 """
