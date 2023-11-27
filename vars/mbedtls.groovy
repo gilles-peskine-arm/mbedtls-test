@@ -95,6 +95,7 @@ def run_pr_job(is_production=true) {
         }
 
         BranchInfo info
+        boolean passing = false
 
         try {
             common.maybe_notify_github('PENDING', 'In progress')
@@ -129,10 +130,11 @@ def run_pr_job(is_production=true) {
         try {
             stage('tls-testing') {
                 run_tls_tests(info)
+                passing = true
             }
         } finally {
             stage('result-analysis') {
-                analysis.analyze_results()
+                analysis.analyze_results(passing)
             }
         }
 
@@ -150,6 +152,7 @@ void run_release_job() {
         try {
             environ.set_tls_release_environment()
             common.init_docker_images()
+            boolean passing = false
             stage('tls-testing') {
                 BranchInfo info = common.get_branch_information()
                 def jobs = common.wrap_report_errors(gen_jobs.gen_release_jobs(info))
@@ -158,6 +161,7 @@ void run_release_job() {
                     analysis.record_inner_timestamps('main', 'run_release_job') {
                         parallel jobs
                     }
+                    passing = true
                 } finally {
                     if (currentBuild.rawBuild.causes[0] instanceof ParameterizedTimerTriggerCause ||
                         currentBuild.rawBuild.causes[0] instanceof TimerTrigger.TimerTriggerCause) {
@@ -168,7 +172,7 @@ void run_release_job() {
         }
         finally {
             stage('result-analysis') {
-                analysis.analyze_results()
+                analysis.analyze_results(passing)
             }
         }
     }

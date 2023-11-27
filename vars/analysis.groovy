@@ -290,11 +290,13 @@ def gather_outcomes() {
     }
 }
 
-void analyze_results() {
+void analyze_results(boolean maybe_report_to_github) {
     try {
         gather_outcomes()
     } catch (err) {
-        common.maybe_notify_github('FAILURE', 'Result analysis failed')
+        if (maybe_report_to_github) {
+            common.maybe_notify_github('FAILURE', 'Result analysis failed')
+        }
         throw (err)
     }
 }
