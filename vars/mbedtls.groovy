@@ -47,9 +47,7 @@ void run_test_stage(BranchInfo info) {
 def run_all_stages(BranchInfo info) {
     try {
         stage('tls-testing') {
-            analysis.record_inner_timestamps('main', 'run_main_job') {
-                run_test_stage(info)
-            }
+            run_test_stage(info)
         }
         stage('result-analysis') {
             try {
