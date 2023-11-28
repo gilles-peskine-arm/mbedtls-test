@@ -39,7 +39,7 @@ void run_test_stage(BranchInfo info) {
     jobs = common.wrap_report_errors(jobs)
 
     jobs.failFast = false
-    analysis.record_inner_timestamps('main', 'run_pr_job') {
+    analysis.record_inner_timestamps('main', 'run_main_job') {
         parallel jobs
     }
 }
@@ -47,7 +47,7 @@ void run_test_stage(BranchInfo info) {
 def run_all_stages(BranchInfo info) {
     try {
         stage('tls-testing') {
-            analysis.record_inner_timestamps('main', 'run_release_job') {
+            analysis.record_inner_timestamps('main', 'run_main_job') {
                 run_test_stage(info)
             }
         }
@@ -70,7 +70,7 @@ def run_all_stages(BranchInfo info) {
 
 /* main job */
 def run_pr_job(is_production=true) {
-    analysis.main_record_timestamps('run_pr_job') {
+    analysis.main_record_timestamps('run_main_job') {
         if (is_production) {
             // Cancel in-flight jobs for the same PR when a new job is launched
             def buildNumber = env.BUILD_NUMBER as int
@@ -154,7 +154,7 @@ def run_job() {
 }
 
 void run_release_job() {
-    analysis.main_record_timestamps('run_release_job') {
+    analysis.main_record_timestamps('run_main_job') {
         environ.set_tls_release_environment()
         common.init_docker_images()
         BranchInfo info = common.get_branch_information()
