@@ -91,6 +91,56 @@ def platform_lacks_tls_tools(platform) {
     return ['freebsd'].contains(os)
 }
 
+def gen_docker_job(String job_name, String platform,
+                   String script_in_docker,
+                   Closure post_checkout,
+                   Closure post_success) {
+    return instrumented_node_job('container-host', job_name) {
+        try {
+            deleteDir()
+            common.get_docker_image(platform)
+            dir('src') {
+                checkout_repo.checkout_repo(info)
+                if (post_checkout) {
+                    post_checkout()
+                }
+                writeFile file: 'steps.sh', text: """\
+#!/bin/sh
+set -eux
+ulimit -f 20971520
+
+if [ -e scripts/min_requirements.py ]; then
+scripts/min_requirements.py --user ${info.python_requirements_override_file}
+fi
+""" + script_in_docker
+                sh 'chmod +x steps.sh'
+            }
+            timeout(time: common.perJobTimeout.time,
+                    unit: common.perJobTimeout.unit) {
+                try {
+                    analysis.record_inner_timestamps('container-host', job_name) {
+                        sh common.docker_script(
+                                platform, "/var/lib/build/steps.sh"
+                        )
+                    }
+                    if (post_success) {
+                        post_success()
+                    }
+                } finally {
+                    dir('src/tests/') {
+                        common.archive_zipped_log_files(job_name)
+                    }
+                }
+            }
+        } catch (err) {
+            failed_builds[job_name] = true
+            throw (err)
+        } finally {
+            deleteDir()
+        }
+    }
+}
+
 def gen_all_sh_jobs(BranchInfo info, platform, component, label_prefix='') {
     def shorthands = [
         "arm-compilers": "armcc",
@@ -358,53 +408,11 @@ scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
     }
     def post_success = null
 
-    return instrumented_node_job('container-host', job_name) {
-        try {
-            deleteDir()
-            common.get_docker_image(platform)
-            dir('src') {
-                checkout_repo.checkout_repo(info)
-                if (post_checkout) {
-                    post_checkout()
-                }
-                writeFile file: 'steps.sh', text: """\
-#!/bin/sh
-set -eux
-ulimit -f 20971520
-
-if [ -e scripts/min_requirements.py ]; then
-scripts/min_requirements.py --user ${info.python_requirements_override_file}
-fi
-""" + script_in_docker
-                sh 'chmod +x steps.sh'
-            }
-            timeout(time: common.perJobTimeout.time,
-                    unit: common.perJobTimeout.unit) {
-                try {
-                    analysis.record_inner_timestamps('container-host', job_name) {
-                        sh common.docker_script(
-                                platform, "/var/lib/build/steps.sh"
-                        )
-                    }
-                    if (post_success) {
-                        post_success()
-                    }
-                } finally {
-                    dir('src/tests/') {
-                        common.archive_zipped_log_files(job_name)
-                    }
-                }
-            }
-        } catch (err) {
-            failed_builds[job_name] = true
-            throw (err)
-        } finally {
-            deleteDir()
-        }
-    }
+    return gen_docker_job(job_name, platform, script_in_docker,
+                          post_checkout, post_success)
 }
 
-def gen_code_coverage_job(BranchInfo info, platform) {
+def gen_code_coverage_job(BranchInfo info, String platform) {
     def job_name = 'code-coverage'
     def script_in_docker = '''
 if grep -q -F coverage-summary.txt tests/scripts/basic-build-test.sh; then
@@ -430,50 +438,8 @@ fi
         }
     }
 
-    return instrumented_node_job('container-host', job_name) {
-        try {
-            deleteDir()
-            common.get_docker_image(platform)
-            dir('src') {
-                checkout_repo.checkout_repo(info)
-                if (post_checkout) {
-                    post_checkout()
-                }
-                writeFile file: 'steps.sh', text: """\
-#!/bin/sh
-set -eux
-ulimit -f 20971520
-
-if [ -e scripts/min_requirements.py ]; then
-scripts/min_requirements.py --user ${info.python_requirements_override_file}
-fi
-""" + script_in_docker
-                sh 'chmod +x steps.sh'
-            }
-            timeout(time: common.perJobTimeout.time,
-                    unit: common.perJobTimeout.unit) {
-                try {
-                    analysis.record_inner_timestamps('container-host', job_name) {
-                        sh common.docker_script(
-                                platform, "/var/lib/build/steps.sh"
-                        )
-                    }
-                    if (post_success) {
-                        post_success()
-                    }
-                } finally {
-                    dir('src/tests/') {
-                        common.archive_zipped_log_files(job_name)
-                    }
-                }
-            }
-        } catch (err) {
-            failed_builds[job_name] = true
-            throw (err)
-        } finally {
-            deleteDir()
-        }
-    }
+    return gen_docker_job(job_name, platform, script_in_docker,
+                          post_checkout, post_success)
 }
 
 /* Mbed OS Example job generation */
