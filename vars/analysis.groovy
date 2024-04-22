@@ -229,43 +229,48 @@ def stash_outcomes(job_name) {
 // In a directory with the source tree available, process the outcome files
 // from all the jobs.
 def process_outcomes() {
-    dir('csvs') {
-        for (stash_name in outcome_stashes) {
-            unstash(stash_name)
-        }
-        sh 'cat *.csv >../outcomes.csv'
-        deleteDir()
-    }
-
-    // The complete outcome file is 2.1GB uncompressed / 56MB compressed as I write.
-    // Often we just want the failures, so make an artifact with just those.
-    // Only produce a failure file if there was a failing job (otherwise
-    // we'd just waste time creating an empty file).
-    //
-    // Note that grep ';FAIL;' could pick up false positives, if another field such
-    // as test description or test suite was "FAIL".
-    if (gen_jobs.failed_builds) {
-        sh '''\
-LC_ALL=C grep ';FAIL;' outcomes.csv >"failures.csv" || [ $? -eq 1 ]
-# Compress the failure list if it is large (for some value of large)
-if [ "$(wc -c <failures.csv)" -gt 99999 ]; then
-    xz -0 -T0 failures.csv
-fi
-'''
-    }
-
-    try {
-        if (fileExists('tests/scripts/analyze_outcomes.py')) {
-            record_inner_timestamps('helper-container-host', 'result-analysis') {
-                sh 'tests/scripts/analyze_outcomes.py outcomes.csv'
+    def post_checkout = {
+        dir('csvs') {
+            for (stash_name in outcome_stashes) {
+                unstash(stash_name)
             }
+            sh 'cat *.csv >../outcomes.csv'
+            deleteDir()
         }
-    } finally {
+
+        // The complete outcome file is 2.1GB uncompressed / 56MB compressed as I write.
+        // Often we just want the failures, so make an artifact with just those.
+        // Only produce a failure file if there was a failing job (otherwise
+        // we'd just waste time creating an empty file).
+        //
+        // Note that grep ';FAIL;' could pick up false positives, if another field such
+        // as test description or test suite was "FAIL".
+        if (gen_jobs.failed_builds) {
+            sh '''\
+    LC_ALL=C grep ';FAIL;' outcomes.csv >"failures.csv" || [ $? -eq 1 ]
+    # Compress the failure list if it is large (for some value of large)
+    if [ "$(wc -c <failures.csv)" -gt 99999 ]; then
+        xz -0 -T0 failures.csv
+    fi
+    '''
+        }
+    }
+
+    script_in_docker = '''\
+tests/scripts/analyze_outcomes.py outcomes.csv
+'''
+
+    def post_execution = {
         sh 'xz -0 -T0 outcomes.csv'
         archiveArtifacts(artifacts: 'outcomes.csv.xz, failures.csv*',
                          fingerprint: true,
                          allowEmptyArchive: true)
     }
+
+    def job = gen_jobs.gen_docker_job('outcome_analysis', 'ubuntu-22.04',
+                                      script_in_docker,
+                                      post_execution=post_execution)
+    job()
 }
 
 def gather_outcomes() {
