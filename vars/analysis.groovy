@@ -229,6 +229,8 @@ def stash_outcomes(job_name) {
 // In a directory with the source tree available, process the outcome files
 // from all the jobs.
 def process_outcomes() {
+    String job_name = 'outcome_analysis'
+
     def post_checkout = {
         dir('csvs') {
             for (stash_name in outcome_stashes) {
@@ -267,13 +269,13 @@ tests/scripts/analyze_outcomes.py outcomes.csv
                          allowEmptyArchive: true)
     }
 
-    def job = gen_jobs.gen_docker_job('outcome_analysis', 'ubuntu-22.04',
+    def job = gen_jobs.gen_docker_job(job_name, 'ubuntu-22.04',
                                       script_in_docker,
                                       post_execution=post_execution)
-    job()
+    common.report_errors(job_name, job)
 }
 
-def gather_outcomes() {
+def analyze_results() {
     // After running on an old branch which doesn't have the outcome
     // file generation mechanism, or after running a partial run,
     // there may not be any outcome file. In this case, silently
@@ -291,14 +293,5 @@ def gather_outcomes() {
                 deleteDir()
             }
         }
-    }
-}
-
-void analyze_results() {
-    try {
-        gather_outcomes()
-    } catch (err) {
-        common.maybe_notify_github('FAILURE', 'Result analysis failed')
-        throw (err)
     }
 }
