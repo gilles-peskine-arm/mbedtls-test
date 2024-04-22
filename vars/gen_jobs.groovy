@@ -93,8 +93,9 @@ def platform_lacks_tls_tools(platform) {
 
 def gen_docker_job(String job_name, String platform,
                    String script_in_docker,
-                   Closure post_checkout,
-                   Closure post_success) {
+                   Closure post_checkout=null,
+                   Closure post_success=null,
+                   Closure post_execution=null) {
     return instrumented_node_job('container-host', job_name) {
         try {
             deleteDir()
@@ -134,6 +135,9 @@ fi
             }
         } catch (err) {
             failed_builds[job_name] = true
+            if (post_execution) {
+                post_execution()
+            }
             throw (err)
         } finally {
             deleteDir()
@@ -406,10 +410,9 @@ scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
             sh "GIT_SSH_COMMAND=\"ssh -i ${keyfile}\" git fetch origin ${CHANGE_TARGET}"
         }
     }
-    def post_success = null
 
     return gen_docker_job(job_name, platform, script_in_docker,
-                          post_checkout, post_success)
+                          post_checkout=post_checkout)
 }
 
 def gen_code_coverage_job(BranchInfo info, String platform) {
@@ -428,7 +431,6 @@ rm basic-build-test.log
 fi
 '''
 
-    def post_checkout = null
     def post_success = {
         dir('src') {
             String coverage_log = readFile('coverage-summary.txt')
@@ -439,7 +441,7 @@ fi
     }
 
     return gen_docker_job(job_name, platform, script_in_docker,
-                          post_checkout, post_success)
+                          post_success=post_success)
 }
 
 /* Mbed OS Example job generation */
