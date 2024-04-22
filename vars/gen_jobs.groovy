@@ -444,7 +444,8 @@ fi
         }
     }
 
-    return gen_docker_job(info, job_name, platform, script_in_docker,
+    def f = gen_docker_job
+    return f(info, job_name, platform, script_in_docker,
                           post_success: post_success)
 }
 
