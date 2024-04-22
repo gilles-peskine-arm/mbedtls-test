@@ -232,7 +232,7 @@ def stash_outcomes(job_name) {
 def process_outcomes(BranchInfo info) {
     String job_name = 'outcome_analysis'
 
-    def post_checkout = {
+    Closure post_checkout = {
         dir('csvs') {
             for (stash_name in outcome_stashes) {
                 unstash(stash_name)
@@ -259,20 +259,21 @@ def process_outcomes(BranchInfo info) {
         }
     }
 
-    script_in_docker = '''\
+    String script_in_docker = '''\
 tests/scripts/analyze_outcomes.py outcomes.csv
 '''
 
-    def post_execution = {
+    Closure post_execution = {
         sh 'xz -0 -T0 outcomes.csv'
         archiveArtifacts(artifacts: 'outcomes.csv.xz, failures.csv*',
                          fingerprint: true,
                          allowEmptyArchive: true)
     }
 
-    def job = gen_jobs.gen_docker_job(info, job_name, 'ubuntu-22.04',
-                                      script_in_docker,
-                                      post_execution: post_execution)[job_name]
+    Closure job = gen_jobs.gen_docker_job(
+        info, job_name, 'ubuntu-22.04',
+        script_in_docker,
+        post_execution: post_execution)[job_name]
     common.report_errors(job_name, job)
 }
 

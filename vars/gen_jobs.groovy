@@ -91,13 +91,13 @@ def platform_lacks_tls_tools(platform) {
     return ['freebsd'].contains(os)
 }
 
-def gen_docker_job(BranchInfo info,
-                   String job_name,
-                   String platform,
-                   String script_in_docker,
-                   Closure post_checkout=null,
-                   Closure post_success=null,
-                   Closure post_execution=null) {
+Map<String, Closure> gen_docker_job(BranchInfo info,
+                                    String job_name,
+                                    String platform,
+                                    String script_in_docker,
+                                    Closure post_checkout=null,
+                                    Closure post_success=null,
+                                    Closure post_execution=null) {
     return instrumented_node_job('container-host', job_name) {
         try {
             deleteDir()
@@ -397,15 +397,16 @@ def gen_windows_jobs(BranchInfo info, String label_prefix='') {
     return jobs
 }
 
-def gen_abi_api_checking_job(BranchInfo info, String platform) {
-    def job_name = 'ABI-API-checking'
-    def script_in_docker = '''
+Map<String, Closure> gen_abi_api_checking_job(BranchInfo info,
+                                              String platform) {
+    String job_name = 'ABI-API-checking'
+    String script_in_docker = '''
 tests/scripts/list-identifiers.sh --internal
 scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
 '''
 
-    def credentials_id = common.is_open_ci_env ? "mbedtls-github-ssh" : "742b7080-e1cc-41c6-bf55-efb72013bc28"
-    def post_checkout = {
+    String credentials_id = common.is_open_ci_env ? "mbedtls-github-ssh" : "742b7080-e1cc-41c6-bf55-efb72013bc28"
+    Closure post_checkout = {
         /* The credentials here are the SSH credentials for accessing the repositories.
            They are defined at {JENKINS_URL}/credentials */
         withCredentials([sshUserPrivateKey(credentialsId: credentials_id, keyFileVariable: 'keyfile')]) {
@@ -417,9 +418,10 @@ scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
                           post_checkout: post_checkout)
 }
 
-def gen_code_coverage_job(BranchInfo info, String platform) {
-    def job_name = 'code-coverage'
-    def script_in_docker = '''
+Map<String, Closure> gen_code_coverage_job(BranchInfo info,
+                                           String platform) {
+    String job_name = 'code-coverage'
+    String script_in_docker = '''
 if grep -q -F coverage-summary.txt tests/scripts/basic-build-test.sh; then
 # New basic-build-test, generates coverage-summary.txt
 ./tests/scripts/basic-build-test.sh
@@ -433,7 +435,7 @@ rm basic-build-test.log
 fi
 '''
 
-    def post_success = {
+    Closure post_success = {
         dir('src') {
             String coverage_log = readFile('coverage-summary.txt')
             coverage_details['coverage'] = coverage_log.substring(
@@ -598,8 +600,10 @@ def gen_coverity_push_jobs() {
     return jobs
 }
 
-def gen_release_jobs(BranchInfo info, String label_prefix='', boolean run_examples=true) {
-    def jobs = [:]
+Map<String, Closure> gen_release_jobs(BranchInfo info,
+                                      String label_prefix='',
+                                      boolean run_examples=true) {
+    Map<String, Closure> jobs = [:]
 
     if (env.RUN_BASIC_BUILD_TEST == "true") {
         jobs = jobs + gen_code_coverage_job(info, 'ubuntu-16.04');
