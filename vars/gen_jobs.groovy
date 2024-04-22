@@ -91,7 +91,9 @@ def platform_lacks_tls_tools(platform) {
     return ['freebsd'].contains(os)
 }
 
-def gen_docker_job(String job_name, String platform,
+def gen_docker_job(BranchInfo info,
+                   String job_name,
+                   String platform,
                    String script_in_docker,
                    Closure post_checkout=null,
                    Closure post_success=null,
@@ -411,7 +413,7 @@ scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
         }
     }
 
-    return gen_docker_job(job_name, platform, script_in_docker,
+    return gen_docker_job(info, job_name, platform, script_in_docker,
                           post_checkout=post_checkout)
 }
 
@@ -440,7 +442,7 @@ fi
         }
     }
 
-    return gen_docker_job(job_name, platform, script_in_docker,
+    return gen_docker_job(info, job_name, platform, script_in_docker,
                           post_success=post_success)
 }
 

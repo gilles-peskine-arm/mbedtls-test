@@ -38,6 +38,7 @@ import jenkins.branch.MultiBranchProject
 import jenkins.util.BuildListenerAdapter
 import net.sf.json.JSONObject
 
+import org.mbed.tls.jenkins.BranchInfo
 import org.mbed.tls.jenkins.JobTimestamps
 
 // A static field has its content preserved across stages.
@@ -228,7 +229,7 @@ def stash_outcomes(job_name) {
 
 // In a directory with the source tree available, process the outcome files
 // from all the jobs.
-def process_outcomes() {
+def process_outcomes(BranchInfo info) {
     String job_name = 'outcome_analysis'
 
     def post_checkout = {
@@ -269,13 +270,13 @@ tests/scripts/analyze_outcomes.py outcomes.csv
                          allowEmptyArchive: true)
     }
 
-    def job = gen_jobs.gen_docker_job(job_name, 'ubuntu-22.04',
+    def job = gen_jobs.gen_docker_job(info, job_name, 'ubuntu-22.04',
                                       script_in_docker,
                                       post_execution=post_execution)[job_name]
     common.report_errors(job_name, job)
 }
 
-def analyze_results() {
+def analyze_results(BranchInfo info) {
     // After running on an old branch which doesn't have the outcome
     // file generation mechanism, or after running a partial run,
     // there may not be any outcome file. In this case, silently
@@ -287,8 +288,7 @@ def analyze_results() {
         dir('outcomes') {
             deleteDir()
             try {
-                checkout_repo.checkout_repo()
-                process_outcomes()
+                process_outcomes(info)
             } finally {
                 deleteDir()
             }
