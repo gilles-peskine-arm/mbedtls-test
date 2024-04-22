@@ -414,7 +414,7 @@ scripts/abi_check.py -o FETCH_HEAD -n HEAD -s identifiers --brief
     }
 
     return gen_docker_job(info, job_name, platform, script_in_docker,
-                          post_checkout=post_checkout)
+                          post_checkout: post_checkout)
 }
 
 def gen_code_coverage_job(BranchInfo info, String platform) {
@@ -443,7 +443,7 @@ fi
     }
 
     return gen_docker_job(info, job_name, platform, script_in_docker,
-                          post_success=post_success)
+                          post_success: post_success)
 }
 
 /* Mbed OS Example job generation */

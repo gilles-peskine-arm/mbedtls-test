@@ -272,7 +272,7 @@ tests/scripts/analyze_outcomes.py outcomes.csv
 
     def job = gen_jobs.gen_docker_job(info, job_name, 'ubuntu-22.04',
                                       script_in_docker,
-                                      post_execution=post_execution)[job_name]
+                                      post_execution: post_execution)[job_name]
     common.report_errors(job_name, job)
 }
 
