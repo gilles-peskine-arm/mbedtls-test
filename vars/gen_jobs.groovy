@@ -444,8 +444,13 @@ fi
         }
     }
 
-    return gen_docker_job(info, job_name, platform, script_in_docker,
-                          post_success: post_success)
+    BranchInfo info1 = info;
+    String job_name1 = job_name;
+    String platform1 = platform;
+    String script_in_docker1 = script_in_docker;
+    Closure post_success1 = post_success;
+    return gen_docker_job(info1, job_name1, platform1, script_in_docker1,
+                          post_success: post_success1);
 }
 
 /* Mbed OS Example job generation */
