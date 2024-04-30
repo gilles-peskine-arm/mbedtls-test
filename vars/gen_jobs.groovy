@@ -98,6 +98,7 @@ def gen_all_sh_jobs(BranchInfo info, platform, component, label_prefix='') {
         "ubuntu-18.04": "u18",
         "ubuntu-20.04": "u20",
         "ubuntu-22.04": "u22",
+        "ubuntu-24.04": "u24",
         "freebsd": "fbsd",
     ]
     /* Default to the full platform hame is a shorthand is not found */
