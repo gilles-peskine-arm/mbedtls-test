@@ -233,12 +233,14 @@ def process_outcomes(BranchInfo info) {
     String job_name = 'outcome_analysis'
 
     Closure post_checkout = {
-        dir('csvs') {
-            for (stash_name in outcome_stashes) {
-                unstash(stash_name)
+        stage('cat-outcomes') {
+            dir('csvs') {
+                for (stash_name in outcome_stashes) {
+                    unstash(stash_name)
+                }
+                sh 'cat *.csv >../outcomes.csv'
+                deleteDir()
             }
-            sh 'cat *.csv >../outcomes.csv'
-            deleteDir()
         }
 
         // The complete outcome file is 2.1GB uncompressed / 56MB compressed as I write.
