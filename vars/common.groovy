@@ -310,7 +310,7 @@ List<BranchInfo> get_branch_information(Collection<String> tls_branches, Collect
                             ),
                             returnStdout: true
                         ).trim().split('\n')
-                        echo "all.sh components: ${all.join(" ")}"
+                        echo "All all.sh components in ${repo}/${branch}: ${all.join(" ")}"
                         return all.collectEntries { element ->
                             return [(element): null]
                         }
@@ -335,7 +335,7 @@ List<BranchInfo> get_branch_information(Collection<String> tls_branches, Collect
                                 ),
                                 returnStdout: true
                             ).trim().split('\n')
-                            echo "Available all.sh components on ${platform}: ${available.join(" ")}"
+                            echo "Available all.sh components in ${repo}/${branch} on ${platform}: ${available.join(" ")}"
                             return available.collectEntries { element ->
                                 return [(element): platform]
                             }
