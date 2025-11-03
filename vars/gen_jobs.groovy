@@ -186,6 +186,7 @@ fi
 }
 
 def gen_all_sh_jobs(BranchInfo info, platform, component) {
+    echo "TRACE: gen_all_sh_jobs(platform='${platform}', component='${component}')"
     def shorthands = [
         "arm-compilers-amd64": "armcc",
         "ubuntu-16.04-amd64": "u16",

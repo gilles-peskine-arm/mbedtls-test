@@ -371,8 +371,11 @@ List<BranchInfo> get_branch_information(Collection<String> tls_branches, Collect
 void check_every_all_sh_component_will_be_run(Collection<BranchInfo> infos) {
     Map<String, Collection<String>> untested_all_sh_components = infos.collectEntries { info ->
         def components = info.all_sh_components.findResults {
-            name, platform -> platform ? null : name
+            name, platform ->
+                echo "TRACE: prefix=${info.prefix} name=${name} platform=${platform}"
+                return platform ? null : name
         }
+        echo "TRACE: prefix=${info.prefix} components=${components}"
         return components ? [("$info.repo/$info.branch".toString()): components] : [:]
     }
 
