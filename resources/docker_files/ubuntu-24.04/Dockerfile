@@ -142,9 +142,8 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 15CF4D18AF4F742
     apt-get install -yq \
         # to build Mbed TLS using latest stable clang version at the time of writing
         clang-20 && \
-    # create symbolic links for latest gcc and clang versions
-    ln -s /usr/bin/clang-20 /usr/local/bin/clang-latest && \
-    ln -s /usr/bin/gcc-14 /usr/local/bin/gcc-latest
+    # create symbolic links for latest clang version
+    ln -s /usr/bin/clang-20 /usr/local/bin/clang-latest
 
 # Install all the parts of gcc-multilib, which is necessary for 32-bit builds.
 # gcc-multilib conflicts with cross-compiler packages that we'll install later,
@@ -183,12 +182,8 @@ RUN if [ "$(uname -m)" = aarch64 ]; then \
     && rm -rf /var/lib/apt/lists/
 
 # Install a snapshot of GCC that we want to test with.
-# GCC 15 will break our code: https://github.com/Mbed-TLS/mbedtls/issues/9814
-# During a transition period, we will use a snapshot of GCC 15 to test the
-# fix for that issue.
-# Eventually, gcc-latest should become GCC 15. This will cause test failures
-# on branches that don't have the fix yet, which is why we don't make
-# GCC 15 be gcc-latest immediately.
+# GCC 15 broke our code: https://github.com/Mbed-TLS/mbedtls/issues/9814
+# gcc-latest is now GCC 15.
 RUN wget -q https://mirror.koddos.net/gcc/releases/gcc-15.1.0/gcc-15.1.0.tar.xz && \
     tar -xf gcc-15.1.0.tar.xz && \
     rm gcc-15.1.0.tar.xz && \
@@ -197,7 +192,8 @@ RUN wget -q https://mirror.koddos.net/gcc/releases/gcc-15.1.0/gcc-15.1.0.tar.xz 
     make && \
     make install && \
     cd .. && \
-    rm -rf gcc-15.1.0
+    rm -rf gcc-15.1.0 && \
+    ln -s ../gcc-15/bin/gcc-15 /usr/local/bin/gcc-latest
 
 # Install exact upstream versions of OpenSSL and GnuTLS
 #
