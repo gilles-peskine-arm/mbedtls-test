@@ -105,6 +105,21 @@ RUN locale && \
     locale-gen "en_US.UTF-8" && \
     dpkg-reconfigure locales
 
+# Install the minimum versions of CMake that we advertize:
+# * CMake 3.10.2 in Mbed TLS 3.6 LTS
+# * CMake 3.20.2 in TF-PSA-Crypto 1.0. and Mbed TLS 4.0.0
+RUN cd /opt && \
+    wget -q https://github.com/Kitware/CMake/releases/download/v3.10.2/cmake-3.10.2-linux-$(uname -m).tar.gz && \
+    tar -xzf cmake-3.10.2-linux-$(uname -m).tar.gz && \
+    rm cmake-3.10.2-linux-$(uname -m).tar.gz && \
+    wget -q https://github.com/Kitware/CMake/releases/download/v3.20.2/cmake-3.20.2-linux-$(uname -m).tar.gz && \
+    tar -xzf cmake-3.20.2-linux-$(uname -m).tar.gz && \
+    rm cmake-3.20.2-linux-$(uname -m).tar.gz && \
+    for x in cmake-*-Linux-$(uname -m)/bin/*; do \
+        v="${x#*-}"; v="${x%%-*}"; \
+        ln -s "$PWD/$x" "/usr/local/bin/${x##*/}-${v}"; \
+    done
+
 # Install Python pip packages
 #
 # The pip wrapper scripts can get out of sync with pip due to upgrading it
