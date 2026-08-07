@@ -174,7 +174,7 @@ RUN if [ "$(uname -m)" = x86_64 ]; then \
         ln -s x86_64-linux-gnu/asm /usr/include/asm; \
     fi
 
-# Install the Arm gcc-cross toolchains
+# Install the gcc-cross toolchains for various platforms (only on x86_64)
 RUN if [ "$(uname -m)" = aarch64 ]; then \
         # HACK: Ubuntu doesn't provide an armel port for Thumb-1 testing, so link
         #       the cross-compiler's libraries into the standard multiarch location.
@@ -186,9 +186,17 @@ RUN if [ "$(uname -m)" = aarch64 ]; then \
     fi && \
     apt-get update -q && apt-get install -yq \
         gcc-aarch64-linux-gnu \
+        gcc-alpha-linux-gnu \
         gcc-arm-linux-gnueabi \
         gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
+        gcc-mips-linux-gnu \
+        gcc-mipsel-linux-gnu \
+        gcc-powerpc-linux-gnu \
+        gcc-powerpc64-linux-gnu \
+        gcc-powerpc64le-linux-gnu \
+        gcc-riscv64-linux-gnu \
+        gcc-s390x-linux-gnu \
         libc6-dev-arm64-cross \
         libc6-dev-armel-cross \
         libc6-dev-armhf-cross \
