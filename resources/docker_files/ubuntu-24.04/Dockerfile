@@ -188,22 +188,28 @@ RUN if [ "$(uname -m)" = aarch64 ]; then \
         ln -s /usr/arm-linux-gnueabi/lib /lib/arm-linux-gnueabi && \
         ln -s arm-linux-gnueabi/ld-linux.so.3 /lib/ld-linux.so.3; \
     fi && \
-    apt-get update -q && apt-get install -yq \
+    apt-get update -q && \
+    apt-get install -yq \
         gcc-aarch64-linux-gnu \
-        gcc-alpha-linux-gnu \
         gcc-arm-linux-gnueabi \
         gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
-        gcc-multilib-mips-linux-gnu \
-        gcc-multilib-mipsel-linux-gnu \
-        gcc-multilib-powerpc64-linux-gnu \
-        gcc-powerpc-linux-gnu \
-        gcc-powerpc64le-linux-gnu \
-        gcc-riscv64-linux-gnu \
-        gcc-s390x-linux-gnu \
         libc6-dev-arm64-cross \
         libc6-dev-armel-cross \
         libc6-dev-armhf-cross \
+    && \
+    if [ "$(uname -m)" = x86_64 ]; then \
+        apt-get install -yq \
+            gcc-alpha-linux-gnu \
+            gcc-multilib-mips-linux-gnu \
+            gcc-multilib-mipsel-linux-gnu \
+            gcc-multilib-powerpc64-linux-gnu \
+            gcc-powerpc-linux-gnu \
+            gcc-powerpc64le-linux-gnu \
+            gcc-riscv64-linux-gnu \
+            gcc-s390x-linux-gnu \
+        ; \
+    fi && \
     && rm -rf /var/lib/apt/lists/
 
 # Install a snapshot of GCC that we want to test with.
