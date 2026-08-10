@@ -210,7 +210,7 @@ RUN if [ "$(uname -m)" = aarch64 ]; then \
             gcc-s390x-linux-gnu \
         ; \
     fi && \
-    && rm -rf /var/lib/apt/lists/
+    rm -rf /var/lib/apt/lists/
 
 # Install a snapshot of GCC that we want to test with.
 # GCC 15 will break our code: https://github.com/Mbed-TLS/mbedtls/issues/9814
