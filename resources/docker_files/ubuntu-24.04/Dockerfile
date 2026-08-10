@@ -194,10 +194,10 @@ RUN if [ "$(uname -m)" = aarch64 ]; then \
         gcc-arm-linux-gnueabi \
         gcc-arm-linux-gnueabihf \
         gcc-arm-none-eabi \
-        gcc-mips-linux-gnu \
-        gcc-mipsel-linux-gnu \
+        gcc-multilib-mips-linux-gnu \
+        gcc-multilib-mipsel-linux-gnu \
+        gcc-multilib-powerpc64-linux-gnu \
         gcc-powerpc-linux-gnu \
-        gcc-powerpc64-linux-gnu \
         gcc-powerpc64le-linux-gnu \
         gcc-riscv64-linux-gnu \
         gcc-s390x-linux-gnu \
